@@ -303,6 +303,11 @@ export async function getConfigurationForModel(
                     baseURL: 'https://api.anthropic.com/v1/',
                     apiKey: env.ANTHROPIC_API_KEY,
                 };
+            case 'moonshot':
+                return {
+                    baseURL: 'https://api.moonshot.ai/v1',
+                    apiKey: env.MOONSHOT_API_KEY,
+                };
             default:
                 providerForcedOverride = modelConfig.provider as AIGatewayProviders;
                 break;
@@ -583,6 +588,15 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 }
             : {};
 
+        // Kimi K2.5 (Moonshot) only accepts temperature 1; thinking mode is toggled
+        // per request via enable_thinking, driven by the operation's reasoning_effort.
+        const isMoonshotModel = modelConfig?.provider === 'moonshot';
+        let kimiEnableThinking = false;
+        if (isMoonshotModel) {
+            kimiEnableThinking = reasoning_effort === 'high' || reasoning_effort === 'medium';
+            temperature = 1;
+        }
+
         // Optimize messages to reduce token count
         const optimizedMessages = optimizeInputs(messages);
         console.log(`Token optimization: Original messages size ~${JSON.stringify(messages).length} chars, optimized size ~${JSON.stringify(optimizedMessages).length} chars`);
@@ -685,6 +699,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 ...schemaObj,
                 ...extraBody,
                 ...toolsOpts,
+                ...(isMoonshotModel ? { enable_thinking: kimiEnableThinking } : {}),
                 model: modelName,
                 messages: messagesToPass as OpenAI.ChatCompletionMessageParam[],
                 max_completion_tokens: maxTokens || 150000,

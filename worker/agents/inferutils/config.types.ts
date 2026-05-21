@@ -337,7 +337,21 @@ const MODELS_MASTER = {
             creditCost: 8, // $0.22
             contextSize: 262144, // 256K Context
         },
-    }
+    },
+
+    // --- Moonshot AI Models ---
+    KIMI_K2_5: {
+        id: 'kimi-k2.5',
+        config: {
+            name: 'Kimi K2.5',
+            size: ModelSize.REGULAR,
+            provider: 'moonshot',
+            creditCost: 2,
+            contextSize: 262144, // 256K Context
+            nonReasoning: true,
+            directOverride: true,
+        },
+    },
 } as const;
 
 /**
