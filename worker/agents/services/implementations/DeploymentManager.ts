@@ -18,8 +18,8 @@ import { DeploymentTarget } from '../../core/types';
 import { BaseProjectState } from '../../core/state';
 import { resolvePreviewUrl } from '../../../utils/urls';
 
-const PER_ATTEMPT_TIMEOUT_MS = 60000;  // 60 seconds per individual attempt
-const MASTER_DEPLOYMENT_TIMEOUT_MS = 300000;  // 5 minutes total
+const PER_ATTEMPT_TIMEOUT_MS = 240000;  // 4 min per attempt - lite sandbox containers need time to cold-start, install deps, and start the dev server
+const MASTER_DEPLOYMENT_TIMEOUT_MS = 600000;  // 10 minutes total
 const HEALTH_CHECK_INTERVAL_MS = 30000;
 
 /**
