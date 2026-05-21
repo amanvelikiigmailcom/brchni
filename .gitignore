@@ -33,6 +33,9 @@ dist
 .env
 .env.*
 
+# MCP server config (contains an API token)
+.mcp.json
+
 runner/downloads
 /generated/prisma
 
