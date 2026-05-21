@@ -967,17 +967,17 @@ export class SandboxSdkClient extends BaseSandboxService {
                         
                     return { previewURL, tunnelURL, processId, allocatedPort };
                 } catch (error) {
-                    this.logger.warn('Failed to start dev server', error);
-                    return undefined;
+                    throw new Error(`Failed to start dev server: ${error instanceof Error ? error.message : String(error)}`);
                 }
             } else {
-                this.logger.warn('Failed to install dependencies', installResult.stderr);
+                throw new Error(`bun install failed (exit code ${installResult.exitCode}): ${installResult.stderr || 'no stderr output'}`);
             }
         } catch (error) {
-            this.logger.warn('Failed to setup instance', error);
+            // Surface the real failure reason in the thrown error so it reaches
+            // the deployment_failed message instead of being lost to log truncation.
+            this.logger.error('Failed to setup instance', error);
+            throw error instanceof Error ? error : new Error(String(error));
         }
-        
-        return undefined;
     }
     
     async createInstance(
