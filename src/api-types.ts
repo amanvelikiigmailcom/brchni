@@ -239,12 +239,11 @@ export {
 } from 'worker/types/image-attachment';
 
 // Auth types imported from worker
-export type { 
-  AuthSession, 
-  ApiKeyInfo, 
-  AuthResult, 
+export type {
+  AuthSession,
+  AuthResult,
   AuthUser,
-  OAuthProvider 
+  OAuthProvider
 } from 'worker/types/auth-types';
 export type { 
   SessionResponse 
@@ -289,18 +288,6 @@ export interface ActiveSessionsData {
     lastActivity: Date;
     createdAt: Date;
     isCurrent: boolean;
-  }>;
-}
-
-// API Keys Response - matches controller response format
-export interface ApiKeysData {
-  keys: Array<{
-    id: string;
-    name: string;
-    keyPreview: string;
-    createdAt: Date | null;
-    lastUsed: Date | null;
-    isActive: boolean;
   }>;
 }
 

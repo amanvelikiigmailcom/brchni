@@ -2,7 +2,7 @@
  * Authentication Type Definitions
  */
 
-import type { ApiKey, AuthAttempt as SchemaAuthAttempt, AuditLog, OAuthState } from '../database/schema';
+import type { AuthAttempt as SchemaAuthAttempt, AuditLog, OAuthState } from '../database/schema';
 
 /**
  * OAuth provider types
@@ -107,12 +107,6 @@ export interface OAuthTokens {
 export type OAuthStateData = Omit<OAuthState, 'provider'> & {
 	provider: OAuthProvider;
 };
-
-/**
- * API Key info for client display
- * Subset of ApiKey schema without sensitive data
- */
-export type ApiKeyInfo = Pick<ApiKey, 'id' | 'name' | 'keyPreview' | 'createdAt' | 'lastUsed' | 'isActive'>;
 
 /**
  * Re-export AuthAttempt from schema
