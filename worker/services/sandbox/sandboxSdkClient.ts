@@ -647,6 +647,10 @@ export class SandboxSdkClient extends BaseSandboxService {
                 } else {
                     this.logger.warn('Development server may not be fully ready', { instanceId });
                 }
+                // Vite pre-bundles dependencies lazily on the first request. Warm the
+                // server up now so the preview does not load while the dep optimizer is
+                // still running (cause of react/jsx-dev-runtime pre-transform errors).
+                await this.warmUpDevServer(instanceId, port);
             } catch (readinessError) {
                 this.logger.warn(`Error during readiness check for ${instanceId}:`, readinessError);
                 this.logger.info('Continuing with server startup despite readiness check error', { instanceId });
@@ -656,6 +660,32 @@ export class SandboxSdkClient extends BaseSandboxService {
         } catch (error) {
             this.logger.warn('Failed to start dev server', error);
             throw error;
+        }
+    }
+
+    /**
+     * Warms up the Vite dev server so dependency pre-bundling finishes before the
+     * preview loads. Vite optimizes deps (including react/jsx-dev-runtime) lazily
+     * on the first request; if the preview iframe loads during that window it hits
+     * transient "does not exist in the optimize deps directory" pre-transform errors.
+     */
+    private async warmUpDevServer(instanceId: string, port: number): Promise<void> {
+        const base = `http://localhost:${port}`;
+        // Requesting the app entry forces Vite to transform the entry module,
+        // discover React and run the optimizer now - before the preview loads.
+        const warmUpTargets = ['/', '/src/main.tsx', '/src/index.tsx'];
+        try {
+            this.logger.info('Warming up dev server (Vite dependency pre-bundling)', { instanceId, port });
+            for (const target of warmUpTargets) {
+                await this.executeCommand(instanceId, `curl -s -m 60 -o /dev/null ${base}${target}`, { timeout: 70000 });
+            }
+            // Let Vite finish writing optimized deps to .vite/deps, then re-request
+            // the entry so it is served from the stable, fully optimized graph.
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            await this.executeCommand(instanceId, `curl -s -m 60 -o /dev/null ${base}/src/main.tsx`, { timeout: 70000 });
+            this.logger.info('Dev server warm-up complete', { instanceId });
+        } catch (error) {
+            this.logger.warn('Dev server warm-up failed (continuing anyway)', { instanceId, error: error instanceof Error ? error.message : String(error) });
         }
     }
 
