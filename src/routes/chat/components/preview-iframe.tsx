@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, forwardRef, useCallback } from 'react';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle, Wifi } from 'lucide-react';
 import { WebSocket } from 'partysocket';
 
 interface PreviewIframeProps {
@@ -25,6 +25,8 @@ interface LoadState {
 
 const MAX_RETRIES = 10;
 const REDEPLOY_AFTER_ATTEMPT = 8;
+// Show the "try a VPN" hint once the preview has been retrying for a while.
+const VPN_HINT_AFTER_ATTEMPT = 4;
 const POST_LOAD_WAIT_SANDBOX = 0;
 const POST_LOAD_WAIT_DISPATCHER = 0;
 
@@ -332,6 +334,19 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		// Render
 		// ====================================================================
 
+		// Hint shown when the preview is slow or unavailable: newly deployed app
+		// domains can be slow to resolve on some ISPs, and a VPN routes around it.
+		const vpnHint = (
+			<div className="mt-4 flex items-start gap-2 rounded-lg border border-accent/20 bg-accent/5 p-3 text-left">
+				<Wifi className="size-4 shrink-0 text-accent mt-0.5" />
+				<p className="text-xs text-text-primary/70">
+					Preview not loading on your network? Some ISPs are slow to
+					recognize newly deployed app domains. Connecting through a
+					VPN usually fixes it.
+				</p>
+			</div>
+		);
+
 		// Successfully loaded - show iframe
 		if (loadState.status === 'loaded' && loadState.loadedSrc) {
 			return (
@@ -398,6 +413,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 						<div className="text-xs text-text-primary/50 mt-2">
 							Preview URLs may take a moment to become available after deployment
 						</div>
+						{loadState.attempt >= VPN_HINT_AFTER_ATTEMPT && vpnHint}
 					</div>
 				</div>
 			);
@@ -426,6 +442,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 							If the issue persists, please describe the problem in chat so I can help diagnose and fix it.
 						</p>
 					</div>
+					{vpnHint}
 				</div>
 			</div>
 		);
