@@ -11,6 +11,8 @@ import {
 	Bookmark,
 	// LayoutGrid,
 	Compass,
+	Zap,
+	Share2,
 } from 'lucide-react';
 import './sidebar-overrides.css';
 import { useRecentApps, useFavoriteApps, useApps } from '@/hooks/use-apps';
@@ -570,6 +572,38 @@ export function AppSidebar() {
 				<SidebarFooter>
 					{user && (
 						<SidebarMenu>
+							{/* Upgrade to Pro */}
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									onClick={() => navigate('/upgrade')}
+									tooltip="Upgrade to Pro"
+									className="group hover:cursor-pointer transition-all duration-200 bg-accent/10 hover:bg-accent/20 border border-accent/30 rounded-md"
+								>
+									<Zap className="h-5 w-5 text-accent flex-shrink-0" />
+									{!isCollapsed && (
+										<span className="font-semibold text-accent">
+											Upgrade to Pro
+										</span>
+									)}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+
+							{/* Share */}
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									onClick={() => navigate('/share')}
+									tooltip="Share & earn"
+									className="group hover:opacity-80 hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200"
+								>
+									<Share2 className="h-5 w-5 text-text-primary/60 group-hover:text-primary/80 transition-colors" />
+									{!isCollapsed && (
+										<span className="font-medium text-text-primary/80 group-hover:text-primary transition-colors">
+											Share & earn
+										</span>
+									)}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									id="discover-link"
