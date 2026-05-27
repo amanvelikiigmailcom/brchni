@@ -40,7 +40,13 @@ export const users = sqliteTable('users', {
     // Account Status
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     isSuspended: integer('is_suspended', { mode: 'boolean' }).default(false),
-    
+
+    // Billing
+    plan: text('plan', { enum: ['free', 'pro', 'business', 'premium'] }).default('free').notNull(),
+    credits: integer('credits').default(0).notNull(),
+    creditsResetAt: integer('credits_reset_at', { mode: 'timestamp' }),
+    polarSubscriptionId: text('polar_subscription_id'),
+
     // Metadata
     createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),

@@ -1,4 +1,6 @@
 import { setupAuthRoutes } from './authRoutes';
+import { setupBillingRoutes } from './billingRoutes';
+import { setupWebhookRoutes } from './webhookRoutes';
 import { setupAppRoutes } from './appRoutes';
 import { setupUserRoutes } from './userRoutes';
 import { setupStatsRoutes } from './statsRoutes';
@@ -69,4 +71,10 @@ export function setupRoutes(app: Hono<AppEnv>): void {
 
     // Screenshot serving routes (public)
     setupScreenshotRoutes(app);
+
+    // Billing routes (Polar.sh integration)
+    setupBillingRoutes(app);
+
+    // Polar webhook (public - verified by signature)
+    setupWebhookRoutes(app);
 }

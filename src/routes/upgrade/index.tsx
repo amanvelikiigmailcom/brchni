@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Check, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
+import { apiClient } from '@/lib/api-client';
+import type { PlanName } from '@/api-types';
 
 interface Plan {
 	name: string;
@@ -79,12 +81,20 @@ const plans: Plan[] = [
 
 export default function UpgradePage() {
 	const [annual, setAnnual] = useState(false);
+	const [loading, setLoading] = useState<string | null>(null);
 	const { user } = useAuth();
 
-	const handleUpgrade = (plan: Plan) => {
+	const handleUpgrade = async (plan: Plan) => {
 		if (!plan.price) return;
-		// TODO: connect to /api/billing/checkout?plan=... when Polar token is ready
-		console.log('Upgrade to', plan.name);
+		setLoading(plan.name);
+		try {
+			const res = await apiClient.getBillingCheckoutUrl(plan.name.toLowerCase() as PlanName);
+			if (res.success && res.data?.url) {
+				window.location.href = res.data.url;
+			}
+		} finally {
+			setLoading(null);
+		}
 	};
 
 	return (
@@ -193,7 +203,7 @@ export default function UpgradePage() {
 
 							<button
 								onClick={() => handleUpgrade(plan)}
-								disabled={!plan.price}
+								disabled={!plan.price || loading === plan.name}
 								className={cn(
 									'w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 mb-6',
 									plan.highlighted
@@ -203,7 +213,7 @@ export default function UpgradePage() {
 											: 'bg-bg-4 text-text-tertiary cursor-default'
 								)}
 							>
-								{!plan.price && user ? 'Current plan' : plan.cta}
+								{loading === plan.name ? 'Loading...' : (!plan.price && user ? 'Current plan' : plan.cta)}
 							</button>
 
 							<ul className="space-y-3 flex-1">
