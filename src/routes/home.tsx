@@ -65,6 +65,76 @@ export default function Home() {
 	});
 
 
+	const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+	const categories = [
+		{
+			name: 'Write',
+			icon: '✏️',
+			suggestions: [
+				'Create social media posts',
+				'Draft email newsletters',
+				'Write a blog post',
+				'Draft an outline for my project',
+				'Edit my content',
+			],
+		},
+		{
+			name: 'Learn',
+			icon: '🎓',
+			suggestions: [
+				'Help me understand a complex topic from scratch',
+				'Create effective flashcards',
+				'Design a lesson or curriculum',
+				'Summarize my academic papers',
+				'Explain this concept simply',
+			],
+		},
+		{
+			name: 'Code',
+			icon: '</>',
+			suggestions: [
+				'Build a REST API',
+				'Create a landing page',
+				'Develop a mobile app',
+				'Build a dashboard with charts',
+				'Create a browser extension',
+			],
+		},
+		{
+			name: 'Life stuff',
+			icon: '☕',
+			suggestions: [
+				'Create a personal development plan',
+				'Create reading lists',
+				'Create family activities',
+				'Plan a trip itinerary',
+				'Organize my schedule',
+			],
+		},
+		{
+			name: 'Borchani choice',
+			icon: '✦',
+			suggestions: [
+				'Build a habit tracker with streaks and analytics',
+				'Create a personal finance dashboard',
+				'Make a recipe app with meal planning',
+				'Build a language learning flashcard app',
+				'Create a mood journal with insights',
+			],
+		},
+	];
+
+	const handleCategoryClick = (name: string) => {
+		setActiveCategory(prev => prev === name ? null : name);
+	};
+
+	const handleSuggestionClick = (suggestion: string) => {
+		setQuery(suggestion);
+		setActiveCategory(null);
+		textareaRef.current?.focus();
+	};
+
 	const placeholderPhrases = useMemo(() => [
 		"todo list app",
 		"F1 fantasy game",
@@ -196,13 +266,13 @@ export default function Home() {
 			</div>
 			
 			<LayoutGroup>
-				<div className="rounded-md w-full max-w-2xl overflow-hidden">
+				<div className="rounded-md w-full max-w-2xl">
 					<motion.div
 						layout
 						transition={{ layout: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
 						className={clsx(
 							"px-6 p-8 flex flex-col items-center z-10",
-							discoverReady ? "mt-48" : "mt-[20vh] sm:mt-[24vh] md:mt-[28vh]"
+							discoverReady ? "mt-24" : "mt-[10vh] sm:mt-[12vh] md:mt-[14vh]"
 						)}>
 						<h1 className="text-shadow-sm text-shadow-red-200 dark:text-shadow-red-900 text-accent font-medium leading-[1.1] tracking-tight text-5xl w-full mb-4 bg-clip-text bg-gradient-to-r from-text-primary to-text-primary/90">
 							What should we build today?
@@ -287,6 +357,70 @@ export default function Home() {
 								</div>
 							</div>
 						</form>
+
+						<div className="mt-3 px-1 relative">
+							<div className="flex flex-wrap gap-2">
+								{categories.map((cat) => (
+									<button
+										key={cat.name}
+										type="button"
+										onClick={() => handleCategoryClick(cat.name)}
+										className={clsx(
+											"px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150",
+											activeCategory === cat.name
+												? "border-accent text-accent bg-accent/10"
+												: "border-accent/20 dark:border-accent/30 text-text-secondary hover:border-accent/60 hover:text-accent hover:bg-accent/5"
+										)}
+									>
+										{cat.name}
+									</button>
+								))}
+							</div>
+
+							<AnimatePresence>
+								{activeCategory && (() => {
+									const cat = categories.find(c => c.name === activeCategory);
+									if (!cat) return null;
+									return (
+										<motion.div
+											key={activeCategory}
+											initial={{ opacity: 0, y: -8 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, y: -8 }}
+											transition={{ duration: 0.15 }}
+											className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-bg-4 dark:bg-bg-2 border border-accent/20 dark:border-accent/30 overflow-hidden shadow-lg"
+										>
+											<div className="flex items-center justify-between px-4 py-3 border-b border-accent/10">
+												<span className="text-sm font-medium text-text-secondary flex items-center gap-2">
+													<span>{cat.icon}</span>
+													<span>{cat.name}</span>
+												</span>
+												<button
+													type="button"
+													onClick={() => setActiveCategory(null)}
+													className="text-text-tertiary hover:text-text-secondary transition-colors"
+												>
+													✕
+												</button>
+											</div>
+											{cat.suggestions.map((s, i) => (
+												<button
+													key={i}
+													type="button"
+													onClick={() => handleSuggestionClick(s)}
+													className={clsx(
+														"w-full text-left px-4 py-3 text-sm text-text-primary hover:bg-accent/5 transition-colors",
+														i < cat.suggestions.length - 1 && "border-b border-accent/10"
+													)}
+												>
+													{s}
+												</button>
+											))}
+										</motion.div>
+									);
+								})()}
+							</AnimatePresence>
+						</div>
 					</motion.div>
 
 				</div>

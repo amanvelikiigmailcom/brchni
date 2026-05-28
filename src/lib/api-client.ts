@@ -56,6 +56,9 @@ import type{
 	CapabilitiesData,
 	VaultConfigResponse,
 	VaultStatusResponse,
+	BillingStatus,
+	CheckoutUrl,
+	PlanName,
 } from '@/api-types';
 import {
 	RateLimitExceededError,
@@ -1123,6 +1126,14 @@ class ApiClient {
 	 */
 	async getAuthProviders(): Promise<ApiResponse<AuthProvidersResponseData>> {
 		return this.request<AuthProvidersResponseData>('/api/auth/providers');
+	}
+
+	async getBillingStatus(): Promise<ApiResponse<BillingStatus>> {
+		return this.request<BillingStatus>('/api/billing/status');
+	}
+
+	async getBillingCheckoutUrl(plan: PlanName): Promise<ApiResponse<CheckoutUrl>> {
+		return this.request<CheckoutUrl>(`/api/billing/checkout?plan=${plan}`);
 	}
 
 	/**

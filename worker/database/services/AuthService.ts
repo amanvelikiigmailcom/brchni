@@ -113,6 +113,7 @@ export class AuthService extends BaseService {
             const userId = generateId();
             const now = new Date();
             
+            const freeCreditsResetAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
             // Store user as verified immediately (no OTP verification required)
             await this.database.insert(schema.users).values({
                 id: userId,
@@ -122,6 +123,8 @@ export class AuthService extends BaseService {
                 emailVerified: true, // Set as verified immediately
                 provider: 'email',
                 providerId: userId,
+                credits: 5,
+                creditsResetAt: freeCreditsResetAt,
                 createdAt: now,
                 updatedAt: now
             });
@@ -467,6 +470,7 @@ export class AuthService extends BaseService {
             const userId = generateId();
             const now = new Date();
             
+            const freeCreditsResetAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
             await this.database.insert(schema.users).values({
                 id: userId,
                 email: oauthUserInfo.email.toLowerCase(),
@@ -475,6 +479,8 @@ export class AuthService extends BaseService {
                 emailVerified: oauthUserInfo.emailVerified || false,
                 provider: provider,
                 providerId: oauthUserInfo.id,
+                credits: 5,
+                creditsResetAt: freeCreditsResetAt,
                 createdAt: now,
                 updatedAt: now
             });

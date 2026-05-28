@@ -1,4 +1,6 @@
 import { setupAuthRoutes } from './authRoutes';
+import { setupBillingRoutes } from './billingRoutes';
+import { setupWebhookRoutes } from './webhookRoutes';
 import { setupAppRoutes } from './appRoutes';
 import { setupUserRoutes } from './userRoutes';
 import { setupStatsRoutes } from './statsRoutes';
@@ -20,7 +22,15 @@ export function setupRoutes(app: Hono<AppEnv>): void {
     // Health check route
     app.get('/api/health', (c) => {
         return c.json({ status: 'ok' });
-    }); 
+    });
+
+    // Dev-only: echo session cookie for debugging
+    app.get('/api/dev/session', (c) => {
+        const cookie = c.req.raw.headers.get('Cookie') || '';
+        const match = cookie.match(/(?:^|;\s*)accessToken=([^;]+)/);
+        return c.json({ session: match?.[1] ?? null });
+    });
+
     
     // Sentry tunnel routes (public - no auth required)
     setupSentryRoutes(app);
@@ -69,4 +79,10 @@ export function setupRoutes(app: Hono<AppEnv>): void {
 
     // Screenshot serving routes (public)
     setupScreenshotRoutes(app);
+
+    // Billing routes (Polar.sh integration)
+    setupBillingRoutes(app);
+
+    // Polar webhook (public - verified by signature)
+    setupWebhookRoutes(app);
 }

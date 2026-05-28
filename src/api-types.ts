@@ -295,3 +295,16 @@ export type {
     GitHubExportOptions,
     GitHubExportResult,
 } from 'worker/services/github/types';
+
+// Billing
+export type PlanName = 'free' | 'pro' | 'business' | 'premium';
+
+export interface BillingStatus {
+    plan: PlanName;
+    credits: number;
+    creditsResetAt: string | null;
+}
+
+export interface CheckoutUrl {
+    url: string;
+}

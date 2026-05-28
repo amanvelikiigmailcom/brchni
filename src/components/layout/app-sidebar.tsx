@@ -11,6 +11,7 @@ import {
 	Bookmark,
 	// LayoutGrid,
 	Compass,
+	Zap,
 } from 'lucide-react';
 import './sidebar-overrides.css';
 import { useRecentApps, useFavoriteApps, useApps } from '@/hooks/use-apps';
@@ -31,8 +32,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/auth-context';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { cn } from '@/lib/utils';
+import { apiClient } from '@/lib/api-client';
+import type { BillingStatus } from '@/api-types';
 import {
 	Tooltip,
 	TooltipContent,
@@ -149,11 +152,20 @@ function AppMenuItem({
 export function AppSidebar() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
+	const { pathname } = useLocation();
 	const [searchQuery, setSearchQuery] = React.useState('');
 	const [expandedGroups, setExpandedGroups] = React.useState<string[]>([
 		'apps',
 		'boards',
 	]);
+	const [billing, setBilling] = React.useState<BillingStatus | null>(null);
+
+	React.useEffect(() => {
+		if (!user) return;
+		apiClient.getBillingStatus().then((res) => {
+			if (res.success && res.data) setBilling(res.data);
+		});
+	}, [user]);
 	const { state, setOpen } = useSidebar();
 	const isCollapsed = state === 'collapsed';
 
@@ -570,30 +582,83 @@ export function AppSidebar() {
 				<SidebarFooter>
 					{user && (
 						<SidebarMenu>
+							{/* Upgrade / Credits */}
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									onClick={() => navigate('/upgrade')}
+									tooltip={billing?.plan === 'free' ? 'Upgrade to Pro' : 'Manage plan'}
+									className={cn(
+										'group hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200',
+										pathname === '/upgrade' && 'bg-bg-1'
+									)}
+								>
+									<Zap className={cn('h-5 w-5 flex-shrink-0 transition-colors', pathname === '/upgrade' ? 'text-text-primary' : 'text-accent')} />
+									{!isCollapsed && (
+										<div className="flex flex-col min-w-0 flex-1">
+											<span className={cn('font-medium leading-tight transition-colors', pathname === '/upgrade' ? 'text-text-primary' : 'text-accent')}>
+												{billing?.plan === 'free' ? 'Upgrade to Pro' : 'Manage plan'}
+											</span>
+											{billing && (
+												<span className="text-xs text-text-tertiary leading-tight">
+													{billing.credits} credits left
+												</span>
+											)}
+										</div>
+									)}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+
+							{/* Share & earn — временно скрыто
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									onClick={() => navigate('/share')}
+									tooltip="Share & earn"
+									className={cn(
+										'group hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200',
+										pathname === '/share' && 'bg-bg-1'
+									)}
+								>
+									<Share2 className={cn('h-5 w-5 transition-colors', pathname === '/share' ? 'text-text-primary' : 'text-text-primary/60')} />
+									{!isCollapsed && (
+										<span className={cn('font-medium transition-colors', pathname === '/share' ? 'text-text-primary' : 'text-text-primary/80')}>
+											Share & earn
+										</span>
+									)}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							*/}
+
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									id="discover-link"
 									onClick={() => navigate('/discover')}
 									tooltip="Discover"
-									className="group hover:opacity-80 hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200"
+									className={cn(
+										'group hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200',
+										pathname === '/discover' && 'bg-bg-1'
+									)}
 								>
-									<Compass className="h-6 w-6 text-text-primary/60 group-hover:text-primary/80 transition-colors" />
+									<Compass className={cn('h-6 w-6 transition-colors', pathname === '/discover' ? 'text-text-primary' : 'text-text-primary/60')} />
 									{!isCollapsed && (
-										<span className="text-text-primary/80 font-medium group-hover:text-primary transition-colors">
+										<span className={cn('font-medium transition-colors', pathname === '/discover' ? 'text-text-primary' : 'text-text-primary/80')}>
 											Discover
 										</span>
 									)}
 								</SidebarMenuButton>
 							</SidebarMenuItem>
+
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									onClick={() => navigate('/settings')}
 									tooltip="Settings"
-									className="group hover:opacity-80 hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200"
+									className={cn(
+										'group hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200',
+										pathname.startsWith('/settings') && 'bg-bg-1'
+									)}
 								>
-									<Settings className="h-6 w-6 text-text-primary/60 group-hover:text-primary/80 transition-colors" />
+									<Settings className={cn('h-6 w-6 transition-colors', pathname.startsWith('/settings') ? 'text-text-primary' : 'text-text-primary/60')} />
 									{!isCollapsed && (
-										<span className="font-medium text-text-primary/80 group-hover:text-primary transition-colors">
+										<span className={cn('font-medium transition-colors', pathname.startsWith('/settings') ? 'text-text-primary' : 'text-text-primary/80')}>
 											Settings
 										</span>
 									)}
