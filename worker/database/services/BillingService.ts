@@ -5,10 +5,17 @@ import { eq } from 'drizzle-orm';
 export type PlanName = 'free' | 'pro' | 'business' | 'premium';
 
 export const PLAN_CREDITS: Record<PlanName, number> = {
-    free: 0,
+    free: 5,
     pro: 100,
     business: 350,
     premium: 1700,
+};
+
+const PLAN_RESET_MS: Record<PlanName, number> = {
+    free: 24 * 60 * 60 * 1000,          // 24 hours
+    pro: 30 * 24 * 60 * 60 * 1000,      // ~30 days
+    business: 30 * 24 * 60 * 60 * 1000,
+    premium: 30 * 24 * 60 * 60 * 1000,
 };
 
 export interface BillingStatus {
@@ -61,14 +68,15 @@ export class BillingService extends BaseService {
     }
 
     async cancelPlan(userId: string): Promise<void> {
+        const now = new Date();
         await this.database
             .update(schema.users)
             .set({
                 plan: 'free',
-                credits: 0,
-                creditsResetAt: null,
+                credits: PLAN_CREDITS.free,
+                creditsResetAt: new Date(now.getTime() + PLAN_RESET_MS.free),
                 polarSubscriptionId: null,
-                updatedAt: new Date(),
+                updatedAt: now,
             })
             .where(eq(schema.users.id, userId));
     }
@@ -76,12 +84,26 @@ export class BillingService extends BaseService {
     async decrementCredits(userId: string): Promise<{ ok: boolean; remaining: number }> {
         const billing = await this.getUserBilling(userId);
         if (!billing) return { ok: false, remaining: 0 };
+
+        const now = new Date();
+
+        // Lazy reset: restore credits if the reset period has passed
+        if (billing.creditsResetAt && billing.creditsResetAt <= now) {
+            const maxCredits = PLAN_CREDITS[billing.plan];
+            const nextReset = new Date(now.getTime() + PLAN_RESET_MS[billing.plan]);
+            await this.database
+                .update(schema.users)
+                .set({ credits: maxCredits, creditsResetAt: nextReset, updatedAt: now })
+                .where(eq(schema.users.id, userId));
+            billing.credits = maxCredits;
+        }
+
         if (billing.credits <= 0) return { ok: false, remaining: 0 };
 
         const remaining = billing.credits - 1;
         await this.database
             .update(schema.users)
-            .set({ credits: remaining, updatedAt: new Date() })
+            .set({ credits: remaining, updatedAt: now })
             .where(eq(schema.users.id, userId));
 
         return { ok: true, remaining };

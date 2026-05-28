@@ -53,6 +53,7 @@ declare namespace Cloudflare {
 		POLAR_ACCESS_TOKEN: string;
 		POLAR_ORGANIZATION_ID: string;
 		POLAR_WEBHOOK_SECRET: string;
+		POLAR_SANDBOX: string;
 		USE_CLOUDFLARE_IMAGES: string;
 		CodeGenObject: DurableObjectNamespace<import("./worker/index").CodeGeneratorAgent>;
 		Sandbox: DurableObjectNamespace<import("./worker/index").UserAppSandboxService>;

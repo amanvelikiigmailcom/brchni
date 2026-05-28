@@ -14,6 +14,7 @@ import { SecurityError, SecurityErrorType } from 'shared/types/errors';
 import { ApiResponse, ControllerResponse } from '../types';
 import { RouteContext } from '../../types/route-context';
 import { AppService, ModelConfigService } from '../../../database';
+import { BillingService } from '../../../database/services/BillingService';
 import { ModelConfig, credentialsToRuntimeOverrides } from '../../../agents/inferutils/config.types';
 import { RateLimitService } from '../../../services/rate-limit/rateLimits';
 import { validateWebSocketOrigin } from '../../../middleware/security/websocket';
@@ -101,6 +102,12 @@ export class CodingAgentController extends BaseController {
                     this.logger.error('Unknown error in enforceAppCreationRateLimit', error);
                     return CodingAgentController.createErrorResponse(JSON.stringify(error), 429);
                 }
+            }
+
+            const billingService = new BillingService(env);
+            const deductResult = await billingService.decrementCredits(user.id);
+            if (!deductResult.ok) {
+                return CodingAgentController.createErrorResponse('No credits remaining. Please upgrade your plan.', 402);
             }
 
             const agentId = generateId();

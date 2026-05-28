@@ -36,7 +36,7 @@ type ConversationStateMessage = {
 
 type RateLimitErrorMessage = {
 	type: 'rate_limit_error';
-    error: RateLimitExceededError;
+    error: RateLimitExceededError | { message: string; type: string; details?: never };
 };
 
 type GenerationStartedMessage = {

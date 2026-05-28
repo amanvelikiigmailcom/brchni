@@ -22,6 +22,7 @@ import { WebSocketMessageData, WebSocketMessageType } from "worker/api/websocket
 import { PreviewType, TemplateDetails } from "worker/services/sandbox/sandboxTypes";
 import { WebSocketMessageResponses } from "../constants";
 import { AppService, ModelConfigService } from "worker/database";
+import { BillingService } from "worker/database/services/BillingService";
 import { ConversationMessage, ConversationState } from "../inferutils/common";
 import { ImageAttachment } from "worker/types/image-attachment";
 import { RateLimitExceededError } from "shared/types/errors";
@@ -511,12 +512,22 @@ export class CodeGeneratorAgent extends Agent<Env, AgentState> implements AgentI
      */
     async handleUserInput(userMessage: string, images?: ImageAttachment[]): Promise<void> {
         try {
-            this.logger().info('Processing user input message', { 
+            this.logger().info('Processing user input message', {
                 messageLength: userMessage.length,
                 pendingInputsCount: this.state.pendingUserInputs.length,
                 hasImages: !!images && images.length > 0,
                 imageCount: images?.length || 0
             });
+
+            const userId = this.state.metadata.userId;
+            const billingService = new BillingService(this.env);
+            const deductResult = await billingService.decrementCredits(userId);
+            if (!deductResult.ok) {
+                this.broadcast(WebSocketMessageResponses.RATE_LIMIT_ERROR, {
+                    error: { message: 'No credits remaining. Please upgrade your plan.', type: 'NO_CREDITS' }
+                });
+                return;
+            }
 
             await this.behavior.handleUserInput(userMessage, images);
             if (!this.behavior.isCodeGenerating()) {

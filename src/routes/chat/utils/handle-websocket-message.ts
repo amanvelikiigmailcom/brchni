@@ -1021,12 +1021,19 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
 
             case 'rate_limit_error': {
                 const errorData = message.error;
+                if (errorData.type === 'NO_CREDITS') {
+                    toast.error('No credits remaining', {
+                        description: 'Upgrade your plan to continue generating.',
+                        action: { label: 'Upgrade', onClick: () => { window.location.href = '/upgrade'; } },
+                    });
+                    break;
+                }
+                if (!errorData.details) break;
                 const rateLimitMessage = handleRateLimitError(
                     errorData.details,
                     onDebugMessage
                 );
                 setMessages(prev => [...prev, rateLimitMessage]);
-                
                 break;
             }
 

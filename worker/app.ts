@@ -40,7 +40,12 @@ export function createApp(env: Env): Hono<AppEnv> {
         if (upgradeHeader?.toLowerCase() === 'websocket') {
             return next();
         }
-        
+
+        // Skip for external webhooks (have their own signature verification)
+        if (c.req.path.startsWith('/api/webhooks/')) {
+            return next();
+        }
+
         try {
             // Handle GET requests - establish CSRF token if needed
             if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {

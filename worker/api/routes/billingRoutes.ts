@@ -10,12 +10,16 @@ const PLAN_NAMES: Record<string, string> = {
     premium: 'Premium',
 };
 
+function polarBaseUrl(env: Env): string {
+    return env.POLAR_SANDBOX === 'true' ? 'https://sandbox-api.polar.sh' : 'https://api.polar.sh';
+}
+
 async function getPolarProductId(planName: string, env: Env): Promise<string | null> {
     const displayName = PLAN_NAMES[planName];
     if (!displayName) return null;
 
     const res = await fetch(
-        `https://api.polar.sh/v1/products?organization_id=${env.POLAR_ORGANIZATION_ID}&limit=20`,
+        `${polarBaseUrl(env)}/v1/products?organization_id=${env.POLAR_ORGANIZATION_ID}&limit=20`,
         { headers: { Authorization: `Bearer ${env.POLAR_ACCESS_TOKEN}` }, redirect: 'follow' }
     );
     if (!res.ok) {
@@ -65,7 +69,7 @@ export function setupBillingRoutes(app: Hono<AppEnv>): void {
         }
 
         const origin = new URL(c.req.url).origin;
-        const checkoutRes = await fetch('https://api.polar.sh/v1/checkouts', {
+        const checkoutRes = await fetch(`${polarBaseUrl(c.env)}/v1/checkouts`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${c.env.POLAR_ACCESS_TOKEN}`,

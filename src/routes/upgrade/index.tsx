@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { apiClient } from '@/lib/api-client';
-import type { PlanName } from '@/api-types';
+import type { BillingStatus, PlanName } from '@/api-types';
 
 interface Plan {
 	name: string;
@@ -19,10 +19,10 @@ const plans: Plan[] = [
 	{
 		name: 'Free',
 		price: null,
-		credits: null,
+		credits: 5,
 		description: 'Get started for free',
 		features: [
-			'Basic credit limits',
+			'5 credits / day',
 			'Community support',
 			'Public projects',
 		],
@@ -79,10 +79,31 @@ const plans: Plan[] = [
 	},
 ];
 
+const PLAN_MAX_CREDITS: Record<PlanName, number> = {
+	free: 5,
+	pro: 100,
+	business: 350,
+	premium: 1700,
+};
+
+const PLAN_LABELS: Record<PlanName, string> = {
+	free: 'Free',
+	pro: 'Pro',
+	business: 'Business',
+	premium: 'Premium',
+};
+
 export default function UpgradePage() {
 	const [annual, setAnnual] = useState(false);
 	const [loading, setLoading] = useState<string | null>(null);
+	const [billing, setBilling] = useState<BillingStatus | null>(null);
 	const { user } = useAuth();
+
+	useEffect(() => {
+		apiClient.getBillingStatus().then((res) => {
+			if (res.success && res.data) setBilling(res.data);
+		});
+	}, []);
 
 	const handleUpgrade = async (plan: Plan) => {
 		if (!plan.price) return;
@@ -97,9 +118,51 @@ export default function UpgradePage() {
 		}
 	};
 
+	const currentPlan = billing?.plan ?? 'free';
+	const currentCredits = billing?.credits ?? 0;
+	const maxCredits = PLAN_MAX_CREDITS[currentPlan];
+	const creditsPercent = Math.min(100, Math.round((currentCredits / maxCredits) * 100));
+	const resetDate = billing?.creditsResetAt
+		? new Date(billing.creditsResetAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+		: null;
+
 	return (
 		<div className="min-h-screen bg-bg-1 px-4 py-16">
 			<div className="max-w-6xl mx-auto">
+
+				{/* Current plan status */}
+				{user && (
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+						<div className="bg-bg-2 border border-accent/20 rounded-2xl p-6">
+							<p className="text-text-tertiary text-sm mb-1">You're on</p>
+							<p className="text-text-primary text-xl font-semibold mb-3">
+								{PLAN_LABELS[currentPlan]} plan
+							</p>
+							{currentPlan === 'free' && (
+								<p className="text-text-tertiary text-sm">Upgrade anytime</p>
+							)}
+						</div>
+						<div className="bg-bg-2 border border-accent/20 rounded-2xl p-6">
+							<div className="flex items-center justify-between mb-2">
+								<p className="text-text-tertiary text-sm">Credits remaining</p>
+								<p className="text-text-primary font-semibold text-lg">{currentCredits}</p>
+							</div>
+							<div className="w-full h-2 bg-bg-4 rounded-full overflow-hidden mb-3">
+								<div
+									className="h-full bg-accent rounded-full transition-all duration-500"
+									style={{ width: `${creditsPercent}%` }}
+								/>
+							</div>
+							<div className="flex items-center justify-between">
+								<p className="text-text-tertiary text-xs">Monthly credits</p>
+								{resetDate && (
+									<p className="text-text-tertiary text-xs">Resets {resetDate}</p>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* Header */}
 				<div className="text-center mb-12">
 					<div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 text-accent px-3 py-1 rounded-full text-sm font-medium mb-4">
@@ -203,7 +266,7 @@ export default function UpgradePage() {
 
 							<button
 								onClick={() => handleUpgrade(plan)}
-								disabled={!plan.price || loading === plan.name}
+								disabled={!plan.price || loading === plan.name || plan.name.toLowerCase() === currentPlan}
 								className={cn(
 									'w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 mb-6',
 									plan.highlighted
@@ -213,7 +276,11 @@ export default function UpgradePage() {
 											: 'bg-bg-4 text-text-tertiary cursor-default'
 								)}
 							>
-								{loading === plan.name ? 'Loading...' : (!plan.price && user ? 'Current plan' : plan.cta)}
+								{loading === plan.name
+								? 'Loading...'
+								: plan.name.toLowerCase() === currentPlan
+									? 'Current plan'
+									: plan.cta}
 							</button>
 
 							<ul className="space-y-3 flex-1">
