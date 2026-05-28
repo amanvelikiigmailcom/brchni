@@ -45,14 +45,12 @@
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
 	"ai": {
-		"binding": "AI",
-        "remote": true
+		"binding": "AI"
 	},
     "dispatch_namespaces": [
         {
             "binding": "DISPATCHER",
-            "namespace": "vibesdk-default-namespace",
-            "remote": true
+            "namespace": "vibesdk-default-namespace"
         }
     ],
 	"containers": [
@@ -76,8 +74,7 @@
 			"binding": "DB",
 			"database_name": "borchani-db",
 			"database_id": "632052f8-7b9b-41ef-be68-9e411bb3e9c4",
-			"migrations_dir": "migrations",
-			"remote": true
+			"migrations_dir": "migrations"
 		}
 	],
 	"durable_objects": {
@@ -104,14 +101,13 @@
       {
         "binding": "TEMPLATES_BUCKET",
         "bucket_name": "borchani-templates",
-        "remote": true,"preview_bucket_name": "borchani-templates"
+        "preview_bucket_name": "borchani-templates"
       }
     ],
     "kv_namespaces": [
         {
             "binding": "VibecoderStore",
-            "id": "9ae34091eb5947368080062bd66b87bf",
-            "remote": true
+            "id": "9ae34091eb5947368080062bd66b87bf"
         }
     ],
     // "placement": {

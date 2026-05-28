@@ -151,7 +151,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           sessionId: response.data.sessionId || response.data.user.id,
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours expiry
         });
-        
+        fetch('/api/dev/session').then(r => r.json()).then((d: { session: string | null }) => {
+          if (d.session) console.log('%c[DEV] SESSION COOKIE:', 'color:lime;font-weight:bold', d.session);
+        });
+
         // Setup token refresh
         setupTokenRefresh();
       } else {

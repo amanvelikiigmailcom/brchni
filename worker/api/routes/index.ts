@@ -22,7 +22,15 @@ export function setupRoutes(app: Hono<AppEnv>): void {
     // Health check route
     app.get('/api/health', (c) => {
         return c.json({ status: 'ok' });
-    }); 
+    });
+
+    // Dev-only: echo session cookie for debugging
+    app.get('/api/dev/session', (c) => {
+        const cookie = c.req.raw.headers.get('Cookie') || '';
+        const match = cookie.match(/(?:^|;\s*)accessToken=([^;]+)/);
+        return c.json({ session: match?.[1] ?? null });
+    });
+
     
     // Sentry tunnel routes (public - no auth required)
     setupSentryRoutes(app);
