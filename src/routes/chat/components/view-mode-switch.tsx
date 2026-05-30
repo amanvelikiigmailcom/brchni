@@ -61,28 +61,30 @@ export function ViewModeSwitch({
 				<button
 					onClick={() => onChange('preview')}
 					className={clsx(
-						'p-1 flex items-center justify-between h-full rounded-md transition-colors',
+						'px-2 py-1 flex items-center gap-1.5 h-full rounded-md transition-colors text-xs',
 						view === 'preview' || view === 'presentation'
 							? 'bg-bg-4 text-text-primary'
 							: 'text-text-50/70 hover:text-text-primary hover:bg-accent',
 					)}
 					title={featureDefinition?.name ?? 'Preview'}
 				>
-					<PreviewIcon className="size-4" />
+					<PreviewIcon className="size-3.5" />
+					<span>Preview</span>
 				</button>
 			)}
 
 			<button
 				onClick={() => onChange('editor')}
 				className={clsx(
-					'p-1 flex items-center justify-between h-full rounded-md transition-colors',
+					'px-2 py-1 flex items-center gap-1.5 h-full rounded-md transition-colors text-xs',
 					view === 'editor'
 						? 'bg-bg-4 text-text-primary'
 						: 'text-text-50/70 hover:text-text-primary hover:bg-accent',
 				)}
 				title="Code"
 			>
-				<Code className="size-4" />
+				<Code className="size-3.5" />
+				<span>Code</span>
 			</button>
 
 			{/* Docs button - show when documentation exists */}
@@ -90,14 +92,15 @@ export function ViewModeSwitch({
 				<button
 					onClick={() => onChange('docs')}
 					className={clsx(
-						'p-1 flex items-center justify-between h-full rounded-md transition-colors',
+						'px-2 py-1 flex items-center gap-1.5 h-full rounded-md transition-colors text-xs',
 						view === 'docs'
 							? 'bg-bg-4 text-text-primary'
 							: 'text-text-50/70 hover:text-text-primary hover:bg-accent',
 					)}
 					title="Docs"
 				>
-					<FileText className="size-4" />
+					<FileText className="size-3.5" />
+					<span>Docs</span>
 				</button>
 			)}
 			{/* {terminalAvailable && (

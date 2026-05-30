@@ -568,6 +568,7 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
                 updateStage('code', { status: 'active' });
                 setTotalFiles(message.totalFiles);
                 setIsGenerating(true);
+                sendMessage(createAIMessage('generation-started', 'Please wait, it takes more than 1 minute...'));
                 break;
             }
 
@@ -830,7 +831,7 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
                 setDeploymentError('');
                 setIsRedeployReady(false);
 
-                sendMessage(createAIMessage('cloudflare_deployment_completed', `Your project has been permanently deployed to Cloudflare Workers: ${message.deploymentUrl}`));
+                sendMessage(createAIMessage('cloudflare_deployment_completed', `Your project has been permanently deployed to Borchani: ${message.deploymentUrl}`));
 
                 onDebugMessage?.('info',
                     'Deployment Completed - Redeploy Reset',
