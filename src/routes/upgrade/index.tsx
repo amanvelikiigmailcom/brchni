@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Check, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { apiClient } from '@/lib/api-client';
@@ -112,7 +113,11 @@ export default function UpgradePage() {
 			const res = await apiClient.getBillingCheckoutUrl(plan.name.toLowerCase() as PlanName);
 			if (res.success && res.data?.url) {
 				window.location.href = res.data.url;
+			} else {
+				toast.error(res.message ?? 'Failed to start checkout');
 			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to start checkout');
 		} finally {
 			setLoading(null);
 		}
