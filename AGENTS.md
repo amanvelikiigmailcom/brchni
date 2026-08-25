@@ -25,3 +25,23 @@
 ## Key Patterns
 - **Add API endpoint:** types in `src/api-types.ts` -> `src/lib/api-client.ts` -> service in `worker/database/services/` -> controller in `worker/api/controllers/` -> route in `worker/api/routes/`
 - **Add LLM tool:** create in `worker/agents/tools/toolkit/` -> register in `worker/agents/tools/customTools.ts`
+
+## Архитектура проекта и стек технологий (RU)
+
+Этот проект (**Cloudflare VibeSDK**) представляет собой AI-платформу для генерации full-stack веб-приложений. Он работает полностью в экосистеме **Cloudflare**, поэтому использование сторонних сервисов вроде Appwrite или Firebase не требуется.
+
+### Технологический стек:
+*   **Фронтенд:** React 19, TypeScript, Vite, TailwindCSS, React Router v7. Находится в папке `src/`.
+*   **Бэкенд:** Cloudflare Workers. Основной код сервера. Находится в папке `worker/`.
+*   **База данных:** Cloudflare D1 (Serverless SQLite база данных). Взаимодействие происходит через Drizzle ORM (`worker/database/`).
+*   **Состояние и потоки (State & Real-time):** Cloudflare Durable Objects обеспечивают изоляцию и сохранение состояния каждого чата-агента. PartySocket (поверх WebSockets) используется для передачи данных клиенту в реальном времени без перезагрузки страниц.
+*   **Песочница для кода:** Cloudflare Containers используются для изоляции и безопасного запуска сгенерированного пользователем кода. Управление находится в `container/`.
+*   **AI Интеграции:** Система использует Cloudflare AI Gateway для подключения к LLM (OpenAI, Anthropic, Google Gemini).
+
+### Структура директорий:
+*   `src/`: Исходный код React фронтенда.
+*   `worker/`: Исходный код Cloudflare Worker бэкенда (API, агенты, сервисы).
+*   `shared/`: Общие типы данных, используемые как на фронтенде, так и на бэкенде.
+*   `container/`: Скрипты и типы для окружения песочницы (запуск кода пользователей).
+*   `sdk/`: TypeScript SDK для программного доступа к платформе VibeSDK.
+*   `migrations/`: SQL миграции для базы данных D1.
