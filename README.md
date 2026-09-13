@@ -53,15 +53,18 @@ Let your customers extend your product's functionality without learning your API
 🚀 **One-Click Deploy** – Deploy generated apps to Workers for Platforms  
 📦 **GitHub Integration** – Export code directly to your repositories  
 
-### 🏗️ Built on Cloudflare's Platform
+### 🏗️ Built on Cloudflare's Platform (Tech Stack)
 
-Cloudflare VibeSDK Build utilizes the full Cloudflare developer ecosystem:
+Cloudflare VibeSDK Build utilizes the full Cloudflare developer ecosystem and modern web technologies:
 
-- **Frontend**: React + Vite with modern UI components
-- **Backend**: Workers with Durable Objects for AI agents  
+- **Frontend**: React 19 + TypeScript + Vite + TailwindCSS + React Router v7
+- **Backend**: Cloudflare Workers
+- **State Management**: Durable Objects for persistent AI agent states
 - **Database**: D1 (SQLite) with Drizzle ORM
-- **AI**: Multiple LLM providers via AI Gateway
-- **Containers**: Sandboxed app previews and execution
+- **AI Integration**: Multiple LLM providers (OpenAI, Anthropic, Google Gemini) via AI Gateway
+- **Real-time Communication**: PartySocket (WebSockets)
+- **Containers**: Custom sandbox service for app previews and execution
+- **Version Control**: isomorphic-git with SQLite filesystem adapter
 - **Storage**: R2 buckets for templates, KV for sessions
 - **Deployment**: Workers for Platforms with dispatch namespaces
 
@@ -92,6 +95,31 @@ session.close();
 ```
 
 **[SDK Documentation](sdk/README.md)** - Full API reference and examples
+
+## 📁 Project Structure
+
+The project is organized into several key directories:
+
+*   **`src/` (Frontend)**: The React application.
+    *   `src/components/`: Reusable UI components.
+    *   `src/routes/`: Route components (React Router).
+    *   `src/hooks/`: Custom React hooks.
+    *   `src/lib/`: Utilities, including `api-client.ts` for all backend calls.
+    *   `src/api-types.ts`: The single source of truth for types shared between frontend and backend.
+*   **`worker/` (Backend)**: The Cloudflare Worker code.
+    *   `worker/index.ts`: The main entry point for the Worker.
+    *   `worker/agents/`: The AI agent system.
+        *   `worker/agents/core/`: Core agent logic (Durable Objects).
+        *   `worker/agents/tools/`: LLM tools (e.g., read files, analyze code).
+        *   `worker/agents/git/`: Git operations using isomorphic-git.
+    *   `worker/api/`: REST API routes and controllers.
+    *   `worker/database/`: Database schema, migrations, and Drizzle setup.
+    *   `worker/services/`: Services like secrets management, OAuth, and sandboxing.
+*   **`shared/`**: Types and utilities shared across the entire project (not just Worker specific).
+*   **`container/`**: Code for the custom sandbox container environment.
+*   **`sdk/`**: The VibeSDK TypeScript client library.
+*   **`docs/`**: Documentation files.
+*   **`migrations/`**: D1 database migration files.
 
 ## 📋 Quick Deploy Checklist
 

@@ -9,41 +9,48 @@
 - Используй чёткий технический язык
 
 ## Обзор проекта
-vibesdk — AI-платформа для генерации full-stack приложений, построенная на инфраструктуре Cloudflare.
+vibesdk — AI-платформа для генерации full-stack приложений, построенная на инфраструктуре Cloudflare. Это решение не требует стороннего бекенда вроде Appwrite или Firebase, так как целиком базируется на Cloudflare Workers и связанных сервисах.
 
 **Технологический стек:**
-- Frontend: React 19, TypeScript, Vite, TailwindCSS, React Router v7
-- Backend: Cloudflare Workers, Durable Objects, D1 (SQLite)
-- AI/LLM: OpenAI, Anthropic, Google AI Studio (Gemini)
-- WebSocket: PartySocket для коммуникации в реальном времени
-- Sandbox: Кастомный контейнерный сервис с CLI-инструментами
-- Git: isomorphic-git с SQLite filesystem
+- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, React Router v7. Сборщик Vite используется для быстрой разработки и сборки клиентской части.
+- **Backend**: Cloudflare Workers. Основная бизнес-логика.
+- **State Management**: Durable Objects (DO) используется для поддержания состояния агентов (каждый чат - отдельный DO) и синхронизации (WebSockets).
+- **База данных**: D1 (SQLite) — реляционная СУБД от Cloudflare. Для работы с ней используется Drizzle ORM.
+- **AI/LLM**: Интеграция с OpenAI, Anthropic, Google AI Studio (Gemini) осуществляется через Cloudflare AI Gateway, что обеспечивает кэширование и мониторинг запросов.
+- **WebSocket**: Библиотека PartySocket для коммуникации в реальном времени между клиентом и Worker-ами.
+- **Sandbox**: Кастомный контейнерный сервис Cloudflare Containers, позволяющий запускать сгенерированный код в изолированном окружении. Для работы с ним есть CLI-инструменты в папке `/container`.
+- **Git**: Встроенная система контроля версий на базе `isomorphic-git` с адаптером файловой системы поверх SQLite. Позволяет хранить историю генерации кода прямо в DO.
 
-**Структура проекта**
+**Структура проекта (подробно)**
 
 **Frontend (`/src`):**
-- React-приложение с 80+ компонентами
-- Единый источник истины для типов: `src/api-types.ts`
-- Все API-вызовы в `src/lib/api-client.ts`
-- Кастомные хуки в `src/hooks/`
-- Компоненты маршрутов в `src/routes/`
+- `src/main.tsx` и `src/App.tsx` — входные точки React-приложения.
+- `src/components/` — Переиспользуемые UI компоненты (кнопки, модалки, инпуты и т.д.), часто основанные на Radix UI и Tailwind. 80+ компонентов.
+- `src/api-types.ts` — Единый источник истины для типов API. Все запросы между фронтом и беком должны использовать типы отсюда.
+- `src/lib/api-client.ts` — Централизованный клиент для выполнения всех HTTP API-запросов к бекенду.
+- `src/hooks/` — Пользовательские React-хуки для инкапсуляции логики.
+- `src/routes/` — Компоненты страниц, привязанные к маршрутам (используется React Router v7). Включает логику чата и отображения превью.
 
 **Backend (`/worker`):**
-- Точка входа: `worker/index.ts` (7860 строк)
-- Система агентов: `worker/agents/` (88 файлов)
-  - Ядро: SimpleCodeGeneratorAgent (Durable Object, 2800+ строк)
-  - Операции: PhaseGeneration, PhaseImplementation, UserConversationProcessor
-  - Инструменты: tools для LLM (read-files, run-analysis, regenerate-file и др.)
-  - Git: isomorphic-git с SQLite filesystem
-- База данных: `worker/database/` (Drizzle ORM, D1)
-- Сервисы: `worker/services/` (sandbox, code-fixer, oauth, rate-limit, secrets)
-- API: `worker/api/` (routes, controllers, handlers)
+- `worker/index.ts` — Главная точка входа для Cloudflare Worker. Содержит настройку маршрутизации и привязку Durable Objects.
+- `worker/agents/` — Сердце системы генерации кода. 88 файлов.
+  - `core/SimpleCodeGeneratorAgent.ts` — Основной Durable Object. Управляет состоянием сессии чата.
+  - `operations/` — Логика фаз генерации (PhaseGeneration, PhaseImplementation) и обработки сообщений пользователя (UserConversationProcessor).
+  - `tools/` — Инструменты, доступные LLM (например, `read-files`, `run-analysis`, `regenerate-file`).
+  - `git/` — Интеграция `isomorphic-git` с адаптером SQLite (`fs-adapter.ts`) для сохранения истории изменений файлов.
+- `worker/database/` — Схема базы данных D1 (через Drizzle ORM), сервисы для работы с БД (`worker/database/services/`).
+- `worker/services/` — Вспомогательные сервисы.
+  - `sandbox/` — Взаимодействие с Cloudflare Containers для запуска превью.
+  - `secrets/` — Durable Object для зашифрованного хранения API-ключей пользователей (XChaCha20-Poly1305).
+  - `oauth/`, `rate-limit/` — авторизация и лимиты.
+- `worker/api/` — REST API. Маршруты (`routes/`), контроллеры (`controllers/`) и обработчики.
 
 **Прочее:**
-- `/shared` — общие типы между frontend/backend (не worker-специфичные типы, также импортируемые на frontend)
-- `/migrations` — миграции базы данных D1
-- `/container` — инструментарий sandbox-контейнера
-- `/templates` — шаблоны скаффолдинга проектов
+- `/shared` — общие типы и утилиты, используемые и во frontend (`/src`), и в backend (`/worker`).
+- `/migrations` — SQL-скрипты миграций для базы данных D1.
+- `/container` — Инструментарий для sandbox-контейнера, скрипты и типы для изолированной среды.
+- `/templates` — Шаблоны скаффолдинга проектов (начальные файлы, с которых начинается генерация).
+- `/sdk` — TypeScript SDK для программного взаимодействия с платформой.
 
 **Основная архитектура:**
 - Каждая сессия чата — отдельный экземпляр Durable Object (SimpleCodeGeneratorAgent)
